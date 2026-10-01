@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0f">
+<title>AI Trader — Paper</title>
+
+<style>
+:root{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  color:#f5f5f7;
+  background:#08090c
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 50% -10%,#22253a 0,#0b0c10 42%,#07080b 100%);
+  min-height:100vh
+}
+
+main{
+  width:min(760px,100%);
+  margin:auto;
+  padding:calc(18px + env(safe-area-inset-top))
+          16px
+          calc(28px + env(safe-area-inset-bottom))
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px
+}
+
+.brand{
+  display:flex;
+  gap:11px;
+  align-items:center
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#fff,#7f87ff);
+  display:grid;
+  place-items:center;
+  color:#08090c;
+  font-size:22px;
+  font-weight:900;
+  box-shadow:0 10px 35px #0008
+}
+
+h1{
+  font-size:20px;
+  margin:0
+}
+
+.sub{
+  font-size:12px;
+  color:#9899a6;
+  margin-top:3px
+}
+
+.pill{
+  border:1px solid #292b36;
+  background:#111219;
+  border-radius:999px;
+  padding:8px 11px;
+  font-size:12px;
+  color:#bfc1cc
+}
+
+.card{
+  background:rgba(20,21,27,.78);
+  border:1px solid #292b35;
+  border-radius:24px;
+  padding:17px;
+  margin:12px 0;
+  box-shadow:0 18px 50px #0005;
+  backdrop-filter:blur(18px)
+}
+
+.hero{
+  padding:20px
+}
+
+.label{
+  font-size:12px;
+  color:#8e909d
+}
+
+.big{
+  font-size:38px;
+  letter-spacing:-1.5px;
+  font-weight:800;
+  margin:5px 0
+}
+
+.gain{
+  color:#73e2a4
+}
+
+.loss{
+  color:#ff8585
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px
+}
+
+.metric{
+  background:#111219;
+  border:1px solid #272933;
+  border-radius:17px;
+  padding:13px
+}
+
+.metric .v{
+  font-size:18px;
+  font-weight:750;
+  margin-top:4px
+}
+
+.muted{
+  color:#8f919d;
+  font-size:12px
+}
+
+button{
+  border:0;
+  border-radius:15px;
+  padding:13px 16px;
+  font-weight:750;
+  font-size:15px;
+  background:#f5f5f7;
+  color:#08090c;
+  cursor:pointer
+}
+
+.secondary{
+  background:#1a1b23;
+  color:#eee;
+  border:1px solid #30313b
+}
+
+.danger{
+  background:#3a171b;
+  color:#ffb7b7
+}
+
+.full{
+  width:100%
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px
+}
+
+td,th{
+  padding:10px 5px;
+  border-bottom:1px solid #242630;
+  text-align:left
+}
+
+th{
+  color:#7f818d;
+  font-weight:600
+}
+
+.right{
+  text-align:right
+}
+
+.range{
+  width:100%;
+  accent-color:#fff
+}
+
+.setting{
+  margin:13px 0
+}
+
+.setting label{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px
+}
+
+.value{
+  color:#bbb
+}
+
+.statusdot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#777;
+  margin-right:6px
+}
+
+.on{
+  background:#68e09c;
+  box-shadow:0 0 12px #68e09c
+}
+
+#chart{
+  width:100%;
+  height:170px;
+  display:block
+}
+
+.note{
+  font-size:11px;
+  color:#777985;
+  line-height:1.5
+}
+
+@media(min-width:650px){
+  .grid{
+    grid-template-columns:repeat(4,1fr)
+  }
+}
+</style>
+</head>
+
+<body>
+
+<main>
+
+  <div class="header">
+
+    <div class="brand">
+
+      <div class="logo">AI</div>
+
+      <div>
+        <h1>AI Trader</h1>
+        <div class="sub">Paper trading • live marktdata</div>
+      </div>
+
+    </div>
+
+    <div class="pill">
+      <span id="dot" class="statusdot"></span>
+      <span id="status">PAUSED</span>
+    </div>
+
+  </div>
+
+
+  <section class="card hero">
+
+    <div class="row">
+
+      <div>
+
+        <div class="label">Portfolio</div>
+
+        <div class="big" id="equity">
+          €750,00
+        </div>
+
+        <div id="pnl" class="gain">
+          +€0,00 · 0,00%
+        </div>
+
+      </div>
+
+      <button id="toggle" onclick="toggle()">
+        Start paper bot
+      </button>
+
+    </div>
+
+    <canvas id="chart"></canvas>
+
+  </section>
+
+
+  <section class="grid">
+
+    <div class="metric">
+      <div class="muted">Cash</div>
+      <div class="v" id="cash">€750</div>
+    </div>
+
+    <div class="metric">
+      <div class="muted">Exposure</div>
+      <div class="v" id="exposure">€0</div>
+    </div>
+
+    <div class="metric">
+      <div class="muted">Drawdown</div>
+      <div class="v" id="dd">0%</div>
+    </div>
+
+    <div class="metric">
+      <div class="muted">Realized P&L</div>
+      <div class="v" id="realized">€0</div>
+    </div>
+
+  </section>
+
+
+  <section class="card">
+
+    <div class="row">
+
+      <h3 style="margin:0">
+        Markten
+      </h3>
+
+      <span class="muted" id="updated">
+        —
+      </span>
+
+    </div>
+
+    <div style="overflow:auto">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Munt</th>
+            <th>Prijs</th>
+            <th>AI kans</th>
+            <th class="right">Signaal</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="markets">
+
+          <tr>
+            <td colspan="4">
+              Nog geen live data.
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <section class="card">
+
+    <h3 style="margin-top:0">
+      Risico & strategie
+    </h3>
+
+
+    <div class="setting">
+
+      <label>
+        Risico per trade
+        <span class="value" id="riskV"></span>
+      </label>
+
+      <input
+        class="range"
+        id="risk"
+        type="range"
+        min=".1"
+        max="5"
+        step=".1"
+        oninput="preview()"
+      >
+
+    </div>
+
+
+    <div class="setting">
+
+      <label>
+        Max exposure
+        <span class="value" id="expV"></span>
+      </label>
+
+      <input
+        class="range"
+        id="exp"
+        type="range"
+        min="10"
+        max="100"
+        step="5"
+        oninput="preview()"
+      >
+
+    </div>
+
+
+    <div class="setting">
+
+      <label>
+        Stop-loss
+        <span class="value" id="slV"></span>
+      </label>
+
+      <input
+        class="range"
+        id="sl"
+        type="range"
+        min=".5"
+        max="15"
+        step=".5"
+        oninput="preview()"
+      >
+
+    </div>
+
+
+    <div class="setting">
+
+      <label>
+        Take-profit
+        <span class="value" id="tpV"></span>
+      </label>
+
+      <input
+        class="range"
+        id="tp"
+        type="range"
+        min=".5"
+        max="30"
+        step=".5"
+        oninput="preview()"
+      >
+
+    </div>
+
+
+    <button
+      class="secondary full"
+      onclick="saveSettings()"
+    >
+      Instellingen opslaan
+    </button>
+
+  </section>
+
+
+  <section class="card">
+
+    <div class="row">
+
+      <h3 style="margin:0">
+        Open posities
+      </h3>
+
+      <button
+        class="secondary"
+        onclick="resetBot()"
+      >
+        Reset
+      </button>
+
+    </div>
+
+
+    <div style="overflow:auto">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Munt</th>
+            <th>Entry</th>
+            <th>Waarde</th>
+            <th class="right">AI</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="positions">
+
+          <tr>
+            <td colspan="4">
+              Geen open posities
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <section class="card">
+
+    <h3 style="margin-top:0">
+      Laatste trades
+    </h3>
+
+    <div style="overflow:auto">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Tijd</th>
+            <th>Munt</th>
+            <th>Side</th>
+            <th>Reden</th>
+            <th class="right">P&L</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="trades">
+
+          <tr>
+            <td colspan="5">
+              Nog geen trades
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <section class="card">
+
+    <div class="note">
+
+      <b>Paper trading:</b>
+
+      deze versie gebruikt alleen openbare marktdata
+      en simuleert orders.
+
+      Er worden geen echte orders geplaatst.
+
+      AI-kansen zijn modeluitvoer en geen garantie
+      op rendement.
+
+      Gebruik eerst een lange periode in paper mode
+      en controleer kosten, liquiditeit en datakwaliteit
+      voordat je überhaupt aan echte uitvoering denkt.
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<script>
+
+let last = {};
+
+
+const euro = n =>
+  new Intl.NumberFormat(
+    'nl-NL',
+    {
+      style:'currency',
+      currency:'EUR'
+    }
+  ).format(n || 0);
+
+
+const pct = n =>
+  (n || 0).toFixed(2) + '%';
+
+
+function esc(s){
+
+  return String(s ?? '').replace(
+    /[&<>"']/g,
+    m => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#039;'
+    }[m])
+  );
+
+}
+
+
+function preview(){
+
+  riskV.textContent =
+    Number(risk.value).toFixed(1) + '%';
+
+  expV.textContent =
+    Number(exp.value).toFixed(0) + '%';
+
+  slV.textContent =
+    Number(sl.value).toFixed(1) + '%';
+
+  tpV.textContent =
+    Number(tp.value).toFixed(1) + '%';
+
+}
+
+
+function apply(d){
+
+  last = d;
+
+
+  equity.textContent =
+    euro(d.equity);
+
+  cash.textContent =
+    euro(d.cash);
+
+  dd.textContent =
+    pct(d.drawdown_pct);
+
+  realized.textContent =
+    euro(d.realized_pnl);
+
+
+  pnl.textContent =
+    (d.pnl >= 0 ? '+' : '') +
+    euro(d.pnl) +
+    ' · ' +
+    (d.return_pct >= 0 ? '+' : '') +
+    pct(d.return_pct);
+
+
+  pnl.className =
+    d.pnl >= 0 ? 'gain' : 'loss';
+
+
+  status.textContent =
+    d.running ? 'RUNNING' : 'PAUSED';
+
+
+  dot.className =
+    'statusdot ' +
+    (d.running ? 'on' : '');
+
+
+  toggle.textContent =
+    d.running
+      ? 'Pauzeer paper bot'
+      : 'Start paper bot';
+
+
+  updated.textContent =
+    d.last_update
+      ? new Date(
+          d.last_update
+        ).toLocaleTimeString('nl-NL')
+      : '—';
+
+
+  risk.value =
+    d.settings.risk_per_trade * 100;
+
+  exp.value =
+    d.settings.max_exposure * 100;
+
+  sl.value =
+    d.settings.stop_loss * 100;
+
+  tp.value =
+    d.settings.take_profit * 100;
+
+
+  preview();
+
+
+  const rows =
+    Object.keys(d.prices || {})
+      .map(s => {
+
+        const p = d.prices[s];
+
+        const prob =
+          d.signals[s];
+
+        const sig =
+          prob >= d.settings.buy_threshold
+            ? 'BUY'
+            : prob <= d.settings.sell_threshold
+              ? 'SELL'
+              : 'HOLD';
+
+
+        return `
+          <tr>
+
+            <td>
+              <b>${esc(s)}</b>
+            </td>
+
+            <td>
+              ${p
+                ? '$' +
+                  p.toLocaleString(
+                    undefined,
+                    {
+                      maximumFractionDigits:2
+                    }
+                  )
+                : '—'}
+            </td>
+
+            <td>
+              ${prob
+                ? Math.round(prob * 100) + '%'
+                : '—'}
+            </td>
+
+            <td class="right">
+              ${sig}
+            </td>
+
+          </tr>
+        `;
+
+      })
+      .join('');
+
+
+  markets.innerHTML =
+    rows ||
+    `
+      <tr>
+        <td colspan="4">
+          Nog geen live data.
+          Start de bot of wacht op
+          de eerste update.
+        </td>
+      </tr>
+    `;
+
+
+  positions.innerHTML =
+    (d.positions || [])
+      .map(p => `
+
+        <tr>
+
+          <td>
+            ${esc(p.symbol)}
+          </td>
+
+          <td>
+            $${p.entry.toLocaleString(
+              undefined,
+              {
+                maximumFractionDigits:2
+              }
+            )}
+          </td>
+
+          <td>
+            ${euro(p.invested)}
+          </td>
+
+          <td class="right">
+            ${(p.probability * 100).toFixed(0)}%
+          </td>
+
+        </tr>
+
+      `)
+      .join('') ||
+
+    `
+      <tr>
+        <td colspan="4">
+          Geen open posities
+        </td>
+      </tr>
+    `;
+
+
+  trades.innerHTML =
+    (d.trades || [])
+      .slice(0,12)
+      .map(t => `
+
+        <tr>
+
+          <td>
+            ${new Date(
+              t.time
+            ).toLocaleTimeString(
+              'nl-NL',
+              {
+                hour:'2-digit',
+                minute:'2-digit'
+              }
+            )}
+          </td>
+
+          <td>
+            ${esc(t.symbol)}
+          </td>
+
+          <td>
+            ${esc(t.side)}
+          </td>
+
+          <td>
+            ${esc(t.reason)}
+          </td>
+
+          <td class="right">
+
+            ${
+              t.side === 'SELL'
+                ? euro(t.pnl)
+                : '—'
+            }
+
+          </td>
+
+        </tr>
+
+      `)
+      .join('') ||
+
+    `
+      <tr>
+        <td colspan="5">
+          Nog geen trades
+        </td>
+      </tr>
+    `;
+
+
+  draw(
+    d.equity_history || []
+  );
+
+}
+
+
+function draw(h){
+
+  const c =
+    document.getElementById('chart');
+
+  const r =
+    c.getBoundingClientRect();
+
+  const dpr =
+    devicePixelRatio || 1;
+
+
+  c.width =
+    r.width * dpr;
+
+  c.height =
+    170 * dpr;
+
+
+  const x =
+    c.getContext('2d');
+
+
+  x.scale(dpr,dpr);
+
+  x.clearRect(
+    0,
+    0,
+    r.width,
+    170
+  );
+
+
+  if(h.length < 2)
+    return;
+
+
+  const vals =
+    h.map(a => a.equity);
+
+  const min =
+    Math.min(...vals);
+
+  const max =
+    Math.max(...vals);
+
+  const span =
+    max - min || 1;
+
+
+  x.beginPath();
+
+
+  vals.forEach(
+    (v,i) => {
+
+      const xx =
+        i *
+        (r.width - 8) /
+        (vals.length - 1)
+        + 4;
+
+      const yy =
+        155 -
+        (v - min) /
+        span *
+        125;
+
+
+      if(i)
+        x.lineTo(xx,yy);
+      else
+        x.moveTo(xx,yy);
+
+    }
+  );
+
+
+  x.strokeStyle =
+    '#aeb5ff';
+
+  x.lineWidth = 2;
+
+  x.stroke();
+
+}
+
+
+async function refresh(){
+
+  try{
+
+    const r =
+      await fetch('/api/state');
+
+    const d =
+      await r.json();
+
+    apply(d);
+
+  }catch(e){
+
+    console.log(
+      'Kan server niet bereiken:',
+      e
+    );
+
+  }
+
+}
+
+
+async function toggle(){
+
+  await fetch(
+    '/api/toggle',
+    {
+      method:'POST'
+    }
+  );
+
+  refresh();
+
+}
+
+
+async function resetBot(){
+
+  if(
+    confirm(
+      'Paper-account resetten naar €750?'
+    )
+  ){
+
+    await fetch(
+      '/api/reset',
+      {
+        method:'POST'
+      }
+    );
+
+    refresh();
+
+  }
+
+}
+
+
+async function saveSettings(){
+
+  await fetch(
+    '/api/settings',
+    {
+      method:'POST',
+      headers:{
+        'Content-Type':
+          'application/json'
+      },
+
+      body:JSON.stringify({
+
+        risk_per_trade:
+          +risk.value / 100,
+
+        max_exposure:
+          +exp.value / 100,
+
+        stop_loss:
+          +sl.value / 100,
+
+        take_profit:
+          +tp.value / 100
+
+      })
+
+    }
+  );
+
+  refresh();
+
+}
+
+
+refresh();
+
+setInterval(
+  refresh,
+  5000
+);
+
+</script>
+
+</body>
+</html>
